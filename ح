@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>آلة حاسبة</title>
+  <style>
+    :root{
+      --bg: #f3f6fb;
+      --panel: #ffffff;
+      --accent: #0f62fe;
+      --muted: #6b7280;
+      --radius: 14px;
+      font-family: "Segoe UI", Roboto, "Noto Naskh Arabic", system-ui, -apple-system, Arial, sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(180deg,var(--bg),#eef4ff 60%);
+      padding:20px;
+      color:#0b1220;
+    }
+    .calc-wrap{
+      width:100%;
+      max-width:420px;
+      background:var(--panel);
+      border-radius:var(--radius);
+      padding:18px;
+      box-shadow:0 12px 30px rgba(11,18,32,0.08);
+    }
+    header{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+    .logo{
+      width:54px;height:54px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#7c3aed);
+      color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;
+    }
+    h1{margin:0;font-size:18px}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
+
+    .screen{
+      margin-top:12px;
+      background:linear-gradient(180deg,#ffffff,#fbfdff);
+      border-radius:12px;
+      padding:14px;
+      border:1px solid rgba(11,18,32,0.04);
+    }
+    .display{
+      font-size:28px;
+      text-align:left;
+      direction:ltr;
+      min-height:40px;
+      overflow:auto;
+      white-space:nowrap;
+      font-weight:600;
+    }
+    .sub{
+      font-size:13px;color:var(--muted);text-align:left;direction:ltr;margin-top:6px;
+    }
+
+    .pad{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:10px;
+      margin-top:12px;
+    }
+    button.key{
+      padding:14px;
+      border-radius:10px;
+      border:0;
+      font-size:18px;
+      cursor:pointer;
+      background:#f4f6fb;
+      box-shadow:inset 0 -2px 0 rgba(11,18,32,0.03);
+    }
+    button.key.op{ background:linear-gradient(180deg,#fde68a,#fbbf24); color:#111827; }
+    button.key.action{ background:linear-gradient(180deg,#fee2e2,#fecaca); color:#991b1b; }
+    button.key.equal{ grid-column: span 2; background:linear-gradient(180deg,#60a5fa,#2563eb); color:white; font-weight:700; }
+    .small{font-size:13px;color:var(--muted)}
+    .history{
+      margin-top:12px;
+      max-height:90px;
+      overflow:auto;
+      padding:10px;
+      border-radius:10px;
+      background:rgba(11,18,32,0.03);
+      font-size:13px;
+    }
+    /* focus */
+    button.key:focus{ outline:3px solid rgba(37,99,235,0.15); outline-offset:2px; }
+    @media (max-width:420px){
+      .display{font-size:22px}
+      button.key{padding:12px;font-size:16px}
+    }
+  </style>
+</head>
+<body>
+  <div class="calc-wrap" role="application" aria-label="آلة حاسبة بسيطة">
+    <header>
+      <div class="logo">حاسب</div>
+      <div>
+        <h1>آلة حاسبة</h1>
+        <p class="lead">عمليات أساسية، سجل سريع، ودعم لوحة المفاتيح</p>
+      </div>
+    </header>
+
+    <div class="screen" aria-live="polite">
+      <div id="expr" class="sub" aria-hidden="true"></div>
+      <div id="display" class="display" role="status">0</div>
+    </div>
+
+    <div class="pad" role="group" aria-label="لوحة الأزرار">
+      <button class="key action" data-action="clear" aria-label="مسح الكل">C</button>
+      <button class="key action" data-action="back" aria-label="حذف خانة">⌫</button>
+      <button class="key" data-key="%" aria-label="النسبة المئوية">%</button>
+      <button class="key op" data-op="/" aria-label="قسمة">÷</button>
+
+      <button class="key" data-key="7">7</button>
+      <button class="key" data-key="8">8</button>
+      <button class="key" data-key="9">9</button>
+      <button class="key op" data-op="*" aria-label="ضرب">×</button>
+
+      <button class="key" data-key="4">4</button>
+      <button class="key" data-key="5">5</button>
+      <button class="key" data-key="6">6</button>
+      <button class="key op" data-op="-" aria-label="طرح">−</button>
+
+      <button class="key" data-key="1">1</button>
+      <button class="key" data-key="2">2</button>
+      <button class="key" data-key="3">3</button>
+      <button class="key op" data-op="+" aria-label="جمع">+</button>
+
+      <button class="key" data-key="0" style="grid-column:span 2;text-align:left;padding-left:22px">0</button>
+      <button class="key" data-key=".">.</button>
+      <button class="key equal" data-action="equals" aria-label="يساوي">=</button>
+    </div>
+
+    <div style="display:flex;gap:10px;align-items:center;margin-top:12px">
+      <div class="small">سجل العمليات:</div>
+      <div style="flex:1"></div>
+      <button class="key" id="clearHistory" style="padding:8px 10px;border-radius:8px">مسح السجل</button>
+    </div>
+
+    <div id="history" class="history" aria-live="polite" role="log"></div>
+  </div>
+
+  <script>
+    (function(){
+      const display = document.getElementById('display');
+      const exprEl = document.getElementById('expr');
+      const historyEl = document.getElementById('history');
+      let current = '0';
+      let expression = ''; // for showing full expression
+      let lastWasOp = false;
+      let hasDot = false;
+      const MAX_HISTORY = 20;
+      const history = [];
+
+      function render(){
+        display.textContent = current;
+        exprEl.textContent = expression;
+      }
+
+      function pushHistory(entry){
+        history.unshift(entry);
+        if(history.length > MAX_HISTORY) history.pop();
+        historyEl.innerHTML = history.map(h => `<div>${escapeHtml(h)}</div>`).join('');
+      }
+
+      // safe escape for history display
+      function escapeHtml(s){
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      }
+
+      function clearAll(){
+        current = '0';
+        expression = '';
+        lastWasOp = false;
+        hasDot = false;
+        render();
+      }
+
+      function backspace(){
+        if (current.length <= 1 || (current.length === 2 && current.startsWith('-'))) {
+          current = '0';
+        } else {
+          if (current.endsWith('.')) hasDot = false;
+          current = current.slice(0, -1);
+        }
+        render();
+      }
+
+      function inputDigit(d){
+        if (lastWasOp) {
+          // start new number after operator
+          expression += ' ' + current;
+          current = d === '.' ? '0.' : d;
+          hasDot = d === '.';
+          lastWasOp = false;
+        } else {
+          if (current === '0' && d !== '.') current = d;
+          else if (current === '-0' && d !== '.') current = '-' + d;
+          else current += d;
+          if (d === '.') hasDot = true;
+        }
+        render();
+      }
+
+      function inputOp(opChar){
+        // convert display characters to JS operators when needed
+        const op = opChar;
+        if (lastWasOp) {
+          // replace last operator
+          expression = expression.slice(0, -1) + op;
+        } else {
+          expression += (expression ? ' ' + current : current) + ' ' + op;
+          current = '0';
+          hasDot = false;
+          lastWasOp = true;
+        }
+        render();
+      }
+
+      function percent(){
+        // apply percent to current number
+        const val = parseFloat(current);
+        if (isNaN(val)) return;
+        current = (val / 100).toString();
+        render();
+      }
+
+      function equals(){
+        try {
+          // build JS expression: replace ×, ÷, − with *, /, -
+          let expr = expression;
+          if (!lastWasOp) expr = (expr ? expr + ' ' + current : current);
+          expr = expr.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g,'-').replace(/×/g,'*');
+          // normalize whitespace
+          expr = expr.replace(/[^\d\.\+\-\*\/\%\(\) ]+/g, '');
+          // evaluate safely with Function
+          // also support percent if user used %
+          expr = expr.replace(/%/g, '/100');
+          if (!expr.trim()) return;
+          const result = Function('"use strict"; return (' + expr + ')')();
+          const out = Number.isFinite(result) ? String(Math.round((result + Number.EPSILON) * 1e12) / 1e12) : 'خطأ';
+          pushHistory(expr + ' = ' + out);
+          current = out;
+          expression = '';
+          lastWasOp = false;
+          hasDot = current.includes('.');
+          render();
+        } catch (e){
+          current = 'خطأ';
+          render();
+        }
+      }
+
+      // button handling
+      document.querySelectorAll('.pad button.key').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const key = btn.getAttribute('data-key');
+          const op = btn.getAttribute('data-op');
+          const action = btn.getAttribute('data-action');
+          if (action === 'clear') clearAll();
+          else if (action === 'back') backspace();
+          else if (action === 'equals') equals();
+          else if (key) {
+            if (key === '.') {
+              if (!hasDot) inputDigit('.');
+            } else {
+              inputDigit(key);
+            }
+          } else if (op) {
+            inputOp(op);
+          }
+        });
+      });
+
+      // clear history
+      document.getElementById('clearHistory').addEventListener('click', ()=>{
+        if (!confirm('مسح سجل العمليات؟')) return;
+        history.length = 0;
+        historyEl.innerHTML = '';
+      });
+
+      // keyboard support
+      window.addEventListener('keydown', (e)=>{
+        const k = e.key;
+        if ((k >= '0' && k <= '9') || k === '.') {
+          // prevent unwanted scrolling when space used
+          if (k === '.' && hasDot) return;
+          inputDigit(k);
+          e.preventDefault();
+        } else if (k === 'Enter' || k === '=') {
+          equals();
+          e.preventDefault();
+        } else if (k === 'Backspace') {
+          backspace();
+        } else if (k === 'Escape') {
+          clearAll();
+        } else if (k === '+' || k === '-' || k === '*' || k === '/') {
+          inputOp(k);
+          e.preventDefault();
+        } else if (k === '%') {
+          percent();
+          e.preventDefault();
+        }
+      });
+
+      // init
+      clearAll();
+    })();
+  </script>
+</body>
+</html>
